@@ -171,6 +171,20 @@
                 return null;
             }
         }
+        // Класс растения
+        class Plant extends Entity {
+            constructor(x, y) {
+                super(x, y, 'plant');
+                this.energy = 10;
+                this.initialEnergy = 10;
+                this.maxAge = 100;
+            }
+            
+            move() {
+                // Растения не двигаются
+                return;
+            }
+        }
     </script>
 </body>
 </html>
