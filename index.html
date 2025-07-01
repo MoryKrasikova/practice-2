@@ -185,6 +185,27 @@
                 return;
             }
         }
+        // Класс травоядных
+        class Herbivore extends Entity {
+            constructor(x, y) {
+                super(x, y, 'herbivore');
+                this.energy = 25;
+                this.initialEnergy = 25;
+                this.maxAge = 120;
+            }
+            
+            eat(entities) {
+                const plantIndex = entities.findIndex(e => 
+                    e.type === 'plant' && e.x === this.x && e.y === this.y
+                );
+                if (plantIndex !== -1) {
+                    entities.splice(plantIndex, 1);
+                    this.energy += 15;
+                    return true;
+                }
+                return false;
+            }
+        }
     </script>
 </body>
 </html>
