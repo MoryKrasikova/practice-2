@@ -261,6 +261,69 @@
                 return;
             }
         }
+    
+    new Vue({
+        el: '#app',
+        data: {
+            worldSize: 50,
+            pixelSize: 10,
+            entities: [],
+            simulationInterval: null,
+            cycle: 0,
+            initialPlants: 200,
+            initialHerbivores: 70,
+            initialPredators: 30,
+            initialScavengers: 15,
+            simulationSpeed: 200,
+            plantGrowthRate: 20,
+            reproductionProbability: 0.3,
+            corpseSpawnProbability: 0.5
+        },
+        computed: {
+            plantCount() { return this.entities.filter(e => e.type === 'plant').length; },
+            herbivoreCount() { return this.entities.filter(e => e.type === 'herbivore').length; },
+            predatorCount() { return this.entities.filter(e => e.type === 'predator').length; },
+            scavengerCount() { return this.entities.filter(e => e.type === 'scavenger').length; },
+            corpseCount() { return this.entities.filter(e => e.type === 'corpse').length; }Add commentMore actions
+        },
+        methods: {
+                initWorld() {
+                    this.entities = [];
+                    
+                    // Создаем растения
+                    for (let i = 0; i < this.initialPlants; i++) {
+                        this.entities.push(new Plant(
+                            Math.floor(Math.random() * this.worldSize),
+                            Math.floor(Math.random() * this.worldSize)
+                        ));
+                    }
+                    
+                    // Создаем травоядных
+                    for (let i = 0; i < this.initialHerbivores; i++) {
+                        this.entities.push(new Herbivore(
+                            Math.floor(Math.random() * this.worldSize),
+                            Math.floor(Math.random() * this.worldSize)
+                        ));
+                    }
+                    
+                    // Создаем хищников
+                    for (let i = 0; i < this.initialPredators; i++) {
+                        this.entities.push(new Predator(
+                            Math.floor(Math.random() * this.worldSize),
+                            Math.floor(Math.random() * this.worldSize)
+                        ));
+                    }
+                    
+                    // Создаем падальщиков
+                    for (let i = 0; i < this.initialScavengers; i++) {
+                        this.entities.push(new Scavenger(
+                            Math.floor(Math.random() * this.worldSize),
+                            Math.floor(Math.random() * this.worldSize)
+                        ));
+                    }
+                },
+            }
+        });
     </script>
 </body>
 </html>
