@@ -227,6 +227,27 @@
                 return false;
             }
         }
+        // Класс падальщиков
+        class Scavenger extends Entity {
+            constructor(x, y) {
+                super(x, y, 'scavenger');
+                this.energy = 30;
+                this.initialEnergy = 30;
+                this.maxAge = 110;
+            }
+            
+            scavenge(entities) {
+                const corpseIndex = entities.findIndex(e => 
+                    e.type === 'corpse' && e.x === this.x && e.y === this.y
+                );
+                if (corpseIndex !== -1) {
+                    entities.splice(corpseIndex, 1);
+                    this.energy += 20;
+                    return true;
+                }
+                return false;
+            }
+        }
     </script>
 </body>
 </html>
