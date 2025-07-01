@@ -141,5 +141,36 @@
             </div>
         </div>
     </div>
+    <script>
+        // Базовый класс для всех существ
+        class Entity {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.age = 0;
+            }
+            
+            move(worldSize) {
+                // Базовая реализация движения (переопределяется в дочерних классах)
+                const directions = [
+                    { dx: 0, dy: -1 }, { dx: 1, dy: 0 },
+                    { dx: 0, dy: 1 }, { dx: -1, dy: 0 }
+                ];
+                const dir = directions[Math.floor(Math.random() * directions.length)];
+                this.x = (this.x + dir.dx + worldSize) % worldSize;
+                this.y = (this.y + dir.dy + worldSize) % worldSize;
+                this.energy -= 1;
+            }
+            
+            reproduce(probability) {
+                if (this.energy > this.initialEnergy * 1.5 && Math.random() < probability) {
+                    this.energy *= 0.7;
+                    return new this.constructor(this.x, this.y);
+                }
+                return null;
+            }
+        }
+    </script>
 </body>
 </html>
