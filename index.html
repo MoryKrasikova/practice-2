@@ -206,6 +206,27 @@
                 return false;
             }
         }
+        // Класс хищников
+        class Predator extends Entity {
+            constructor(x, y) {
+                super(x, y, 'predator');
+                this.energy = 35;
+                this.initialEnergy = 35;
+                this.maxAge = 100;
+            }
+            
+            hunt(entities) {
+                const herbivoreIndex = entities.findIndex(e => 
+                    e.type === 'herbivore' && e.x === this.x && e.y === this.y
+                );
+                if (herbivoreIndex !== -1) {
+                    entities.splice(herbivoreIndex, 1);
+                    this.energy += 25;
+                    return true;
+                }
+                return false;
+            }
+        }
     </script>
 </body>
 </html>
