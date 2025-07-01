@@ -348,8 +348,66 @@
                     this.cycle = 0;
                     this.initWorld();
                 },
-            }
-        });
+        },
+        simulateCycle() {
+                    // Старение и смерть
+                    this.entities = this.entities.filter(entity => {
+                        entity.age++;
+                        if (entity.age > entity.maxAge || entity.energy <= 0) {
+                            if (entity.type !== 'plant' && Math.random() < this.corpseSpawnProbability) {
+                                this.entities.push(new Corpse(entity.x, entity.y));
+                            }
+                            return false;
+                        }
+                        return true;
+                    });
+                    
+                    // Движение
+                    this.entities.forEach(entity => entity.move(this.worldSize));
+                    
+                    // Взаимодействия
+                    const newEntities = [];
+                    this.entities.forEach(entity => {
+                        if (entity instanceof Herbivore) {
+                            if (entity.eat(this.entities)) {
+                                const offspring = entity.reproduce(this.reproductionProbability);
+                                if (offspring) newEntities.push(offspring);
+                            }
+                        } 
+                        else if (entity instanceof Predator) {
+                            if (entity.hunt(this.entities)) {
+                                const offspring = entity.reproduce(this.reproductionProbability);
+                                if (offspring) newEntities.push(offspring);
+                                if (Math.random() < this.corpseSpawnProbability) {
+                                    this.entities.push(new Corpse(entity.x, entity.y));
+                                }
+                            }
+                        } 
+                        else if (entity instanceof Scavenger) {
+                            if (entity.scavenge(this.entities)) {
+                                const offspring = entity.reproduce(this.reproductionProbability * 0.7);
+                                if (offspring) newEntities.push(offspring);
+                            }
+                        }
+                        
+                        // Общее размножение
+                        if (!(entity instanceof Plant || entity instanceof Corpse)) {
+                            const offspring = entity.reproduce(this.reproductionProbability * 0.5);
+                            if (offspring) newEntities.push(offspring);
+                        }
+                    });
+                    
+                    // Добавление новых существ
+                    this.entities.push(...newEntities);
+                    
+                    // Рост растений
+                    if (Math.random() < this.plantGrowthRate / 100) {
+                        this.addRandomPlant();
+                    }
+                    
+                    this.cycle++;
+                }
+    });
     </script>
 </body>
 </html>
