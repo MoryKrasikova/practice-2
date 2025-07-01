@@ -406,7 +406,18 @@
                     }
                     
                     this.cycle++;
+            },
+        watch: {
+                simulationSpeed(newSpeed) {
+                    if (this.simulationInterval) {
+                        clearInterval(this.simulationInterval);
+                        this.simulationInterval = setInterval(() => this.simulateCycle(), newSpeed);
+                    }
                 }
+        },
+        mounted() {
+                this.initWorld();
+        }
     });
     </script>
 </body>
