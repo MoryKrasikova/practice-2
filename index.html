@@ -248,6 +248,19 @@
                 return false;
             }
         }
+        // Класс мертвых
+        class Corpse extends Entity {
+            constructor(x, y) {
+                super(x, y, 'corpse');
+                this.energy = 0;
+                this.maxAge = 20;
+            }
+            
+            move() {
+                // Трупы не двигаются
+                return;
+            }
+        }
     </script>
 </body>
 </html>
