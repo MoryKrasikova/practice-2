@@ -322,6 +322,32 @@
                         ));
                     }
                 },
+                addRandomPlant() {
+                    this.entities.push(new Plant(
+                        Math.floor(Math.random() * this.worldSize),
+                        Math.floor(Math.random() * this.worldSize)
+                    ));
+                },
+                
+                addPlants() {
+                    for (let i = 0; i < 50; i++) this.addRandomPlant();
+                },
+                
+                startSimulation() {
+                    if (this.simulationInterval) clearInterval(this.simulationInterval);
+                    this.simulationInterval = setInterval(() => this.simulateCycle(), this.simulationSpeed);
+                },
+                
+                stopSimulation() {
+                    clearInterval(this.simulationInterval);
+                    this.simulationInterval = null;
+                },
+                
+                resetSimulation() {
+                    this.stopSimulation();
+                    this.cycle = 0;
+                    this.initWorld();
+                },
             }
         });
     </script>
