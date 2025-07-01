@@ -91,6 +91,55 @@
     </style>
 </head>
 <body>
-    
+    <div id="app">
+        <div class="artificial-life">
+            <h1>Искусственная жизнь</h1>
+            
+            <div class="settings">
+                <div class="slider-container">
+                    <label for="speed">Скорость симуляции:</label>
+                    <input type="range" id="speed" min="50" max="1000" v-model="simulationSpeed">
+                    <span>{{ simulationSpeed }} мс</span>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="plantGrowth">Рост растений:</label>Add commentMore actions
+                    <input type="range" id="plantGrowth" min="0" max="100" v-model="plantGrowthRate">
+                    <span>{{ plantGrowthRate }}%</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button @click="startSimulation">Старт</button>
+                <button @click="stopSimulation">Стоп</button>
+                <button @click="resetSimulation">Сброс</button>
+                <button @click="addPlants">Добавить растения</button>
+            </div>
+            
+            <div class="stats">
+                <div>Растения: {{ plantCount }}</div>
+                <div>Травоядные: {{ herbivoreCount }}</div>
+                <div>Хищники: {{ predatorCount }}</div>
+                <div>Падальщики: {{ scavengerCount }}</div>
+                <div>Трупы: {{ corpseCount }}</div>
+                <div>Цикл: {{ cycle }}</div>
+            </div>
+            
+            <div class="world" ref="world" :style="{ width: worldSize * pixelSize + 'px', height: worldSize * pixelSize + 'px' }">
+                <div 
+                    v-for="(entity, index) in entities" 
+                    :key="index"
+                    class="entity"
+                    :class="[entity.type]"
+                    :style="{
+                        left: entity.x * pixelSize + 'px',
+                        top: entity.y * pixelSize + 'px',
+                        width: pixelSize + 'px',
+                        height: pixelSize + 'px'
+                    }"
+                ></div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
