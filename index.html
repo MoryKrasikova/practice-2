@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Искусственная жизнь</title>
@@ -100,12 +101,6 @@
                     <label for="speed">Скорость симуляции:</label>
                     <input type="range" id="speed" min="50" max="1000" v-model="simulationSpeed">
                     <span>{{ simulationSpeed }} мс</span>
-                </div>
-                
-                <div class="slider-container">
-                    <label for="plantGrowth">Рост растений:</label>
-                    <input type="range" id="plantGrowth" min="0" max="100" v-model="plantGrowthRate">
-                    <span>{{ plantGrowthRate }}%</span>
                 </div>
             </div>
             
@@ -224,27 +219,45 @@
                 this.energy = 35;
                 this.initialEnergy = 35;
                 this.maxAge = 100;
+                this.huntRadius = 1;
+                this.scavengerHuntChance = 0.2; // 20% шанс атаки на падальщика
             }
-            
+
             hunt(entities) {
-                // Ищем травоядных вплотную
-                const nearbyHerbivores = entities.filter(e => 
+                // 1. Сначала пробуем атаковать травоядных (приоритет)
+                const herbivores = entities.filter(e => 
                     e.type === 'herbivore' && 
-                    Math.abs(e.x - this.x) <= 1 && 
-                    Math.abs(e.y - this.y) <= 1
+                    Math.abs(e.x - this.x) <= this.huntRadius && 
+                    Math.abs(e.y - this.y) <= this.huntRadius
                 );
-                
-                if (nearbyHerbivores.length > 0) {
-                    const herbivore = nearbyHerbivores[0];
-                    entities.splice(entities.indexOf(herbivore), 1);
+
+                if (herbivores.length > 0) {
+                    const target = herbivores[0];
+                    entities.splice(entities.indexOf(target), 1);
                     this.energy += 25;
-                    
-                    // С вероятностью 50% оставляем труп
-                    if (Math.random() < 0.5) {
-                        entities.push(new Corpse(herbivore.x, herbivore.y));
-                    }
+                    // Оставляем труп с шансом 50%
+                    if (Math.random() < 0.5) entities.push(new Corpse(target.x, target.y));
                     return true;
                 }
+
+                // 2. Если травоядных нет - с шансом 20% атакуем падальщика
+                if (Math.random() < this.scavengerHuntChance) {
+                    const scavengers = entities.filter(e => 
+                        e.type === 'scavenger' && 
+                        Math.abs(e.x - this.x) <= this.huntRadius && 
+                        Math.abs(e.y - this.y) <= this.huntRadius
+                    );
+
+                    if (scavengers.length > 0) {
+                        const target = scavengers[0];
+                        entities.splice(entities.indexOf(target), 1);
+                        this.energy += 20; // Меньше энергии, чем за травоядного
+                        // Оставляем труп с шансом 30%
+                        if (Math.random() < 0.3) entities.push(new Corpse(target.x, target.y));
+                        return true;
+                    }
+                }
+
                 return false;
             }
         }
@@ -278,17 +291,17 @@
 
         // Класс трупа 
         class Corpse extends Entity {
-        constructor(x, y) {
-            super(x, y, 'corpse');
-            this.energy = 0;
-            this.maxAge = 15; // Труп исчезнет строго через 15 циклов
-            this.age = 0; // Сбрасываем возраст при создании
+            constructor(x, y) {
+                super(x, y, 'corpse');
+                this.energy = 0;
+                this.maxAge = 15; // Труп исчезнет строго через 15 циклов
+                this.age = 0; // Сбрасываем возраст при создании
+            }
+            
+            move() {
+                return; // Трупы не двигаются
+            }
         }
-        
-        move() {
-            return; // Трупы не двигаются
-        }
-    }
 
         // Vue-приложение
         new Vue({
@@ -301,8 +314,8 @@
                 cycle: 0,
                 initialPlants: 200,
                 initialHerbivores: 70,
-                initialPredators: 30,
-                initialScavengers: 15,
+                initialPredators: 35,
+                initialScavengers: 30,
                 simulationSpeed: 200,
                 plantGrowthRate: 20,
                 reproductionProbability: 0.3,
