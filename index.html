@@ -108,7 +108,6 @@
                 <button @click="startSimulation">Старт</button>
                 <button @click="stopSimulation">Стоп</button>
                 <button @click="resetSimulation">Сброс</button>
-                <button @click="addPlants">Добавить растения</button>
             </div>
             
             <div class="stats">
@@ -116,7 +115,7 @@
                 <div>Травоядные: {{ herbivoreCount }}</div>
                 <div>Хищники: {{ predatorCount }}</div>
                 <div>Падальщики: {{ scavengerCount }}</div>
-                <div>Трупы: {{ corpseCount }}</div>
+                <div>Останки: {{ corpseCount }}</div>
                 <div>Цикл: {{ cycle }}</div>
             </div>
             
@@ -159,18 +158,34 @@
                 this.energy -= 1;
             }
             
-            reproduce() {
+            reproduce(worldSize) {
                 if (this.energy > this.initialEnergy * 1.5 && 
                     Math.random() < this.reproductionProbability) {
+                    // Уменьшаем энергию
                     this.energy *= 0.7;
-                    const offspring = new this.constructor(this.x, this.y);
+                    
+                    // Генерируем смещение (8 направлений)
+                    const directions = [
+                        [-1,-1], [-1,0], [-1,1],
+                        [0,-1],          [0,1],
+                        [1,-1],  [1,0],  [1,1]
+                    ];
+                    const [dx, dy] = directions[Math.floor(Math.random() * directions.length)];
+                    
+                    // Создаем потомка
+                    const offspring = new this.constructor(
+                        (this.x + dx + worldSize) % worldSize,
+                        (this.y + dy + worldSize) % worldSize
+                    );
+                    
+                    // Наследуем вероятность размножения
                     offspring.reproductionProbability = this.reproductionProbability;
+                    
                     return offspring;
                 }
                 return null;
             }
         }
-
         // Класс растения
         class Plant extends Entity {
             constructor(x, y) {
@@ -178,10 +193,22 @@
                 this.energy = 10;
                 this.initialEnergy = 10;
                 this.maxAge = 100;
+                this.photosynthesisRate = 1;
+                this.maxEnergy = 20;
+                this.reproductionProbability = 0.2; 
             }
-            
-            move() {
-                return;
+
+            update() {
+                this.age++;
+                this.energy = this.energy + this.photosynthesisRate;
+                
+                // Только проверка смерти и фотосинтез
+                if (this.age > this.maxAge || this.energy <= 0) {
+                    this.energy = 0;
+                    return null;
+                }
+                
+                return true; 
             }
         }
 
@@ -191,7 +218,7 @@
                 super(x, y, 'herbivore');
                 this.energy = 25;
                 this.initialEnergy = 25;
-                this.maxAge = 120;
+                this.maxAge = 70;
             }
             
             eat(entities) {
@@ -218,7 +245,7 @@
                 super(x, y, 'predator');
                 this.energy = 35;
                 this.initialEnergy = 35;
-                this.maxAge = 100;
+                this.maxAge = 80;
                 this.huntRadius = 1;
                 this.scavengerHuntChance = 0.2; // 20% шанс атаки на падальщика
             }
@@ -313,16 +340,16 @@
                 simulationInterval: null,
                 cycle: 0,
                 initialPlants: 200,
-                initialHerbivores: 70,
+                initialHerbivores: 100,
                 initialPredators: 35,
-                initialScavengers: 30,
+                initialScavengers: 35,
                 simulationSpeed: 200,
-                plantGrowthRate: 20,
+                plantGrowthRate: 15,
                 reproductionProbability: 0.3,
                 corpseSpawnProbability: 0.5
             },
             computed: {
-                plantCount() { return this.entities.filter(e => e.type === 'plant').length; },
+                plantCount() {return this.entities.filter(e =>e.type === 'plant' && e.energy > 0).length;},
                 herbivoreCount() { return this.entities.filter(e => e.type === 'herbivore').length; },
                 predatorCount() { return this.entities.filter(e => e.type === 'predator').length; },
                 scavengerCount() { return this.entities.filter(e => e.type === 'scavenger').length; },
@@ -338,6 +365,7 @@
                             Math.floor(Math.random() * this.worldSize),
                             Math.floor(Math.random() * this.worldSize)
                         );
+                        plant.reproductionProbability = this.reproductionProbability; // Устанавливаем вероятность
                         this.entities.push(plant);
                     }
                     
@@ -371,18 +399,7 @@
                         this.entities.push(scavenger);
                     }
                 },
-                
-                addRandomPlant() {
-                    this.entities.push(new Plant(
-                        Math.floor(Math.random() * this.worldSize),
-                        Math.floor(Math.random() * this.worldSize)
-                    ));
-                },
-                
-                addPlants() {
-                    for (let i = 0; i < 50; i++) this.addRandomPlant();
-                },
-                
+
                 startSimulation() {
                     if (this.simulationInterval) clearInterval(this.simulationInterval);
                     this.simulationInterval = setInterval(() => this.simulateCycle(), this.simulationSpeed);
@@ -400,84 +417,52 @@
                 },
                 
                 simulateCycle() {
-                    // Этап 1: Обработка смерти существ (кроме трупов)
+                    // Этап 1: Обработка всех существ
+                    const newEntities = [];
                     const newCorpses = [];
-                    this.entities = this.entities.filter(entity => {
-                        if (entity.type === 'corpse') return true; // Трупы обрабатываем отдельно
-                        
+                    
+                    // 1. Обновляем все сущности
+                    this.entities.forEach(entity => {
                         entity.age++;
+                        
+                        // Для растений - фотосинтез
+                        if (entity.type === 'plant') {
+                            entity.energy = Math.min(entity.energy + entity.photosynthesisRate, entity.maxEnergy);
+                        } 
+                        // Для других - движение
+                        else {
+                            entity.move(this.worldSize);
+                        }
+                        
+                        // Проверка смерти
                         if (entity.age > entity.maxAge || entity.energy <= 0) {
                             if (entity.type !== 'plant' && Math.random() < this.corpseSpawnProbability) {
                                 newCorpses.push(new Corpse(entity.x, entity.y));
                             }
-                            return false;
-                        }
-                        return true;
-                    });
-
-                    // Этап 2: Обработка трупов
-                    this.entities.forEach(entity => {
-                        if (entity.type === 'corpse') {
-                            entity.age++; // Увеличиваем возраст только у трупов
-                        }
-                    });
-
-                    // Добавляем новые трупы
-                    this.entities.push(...newCorpses);
-
-                    // Этап 3: Удаляем трупы, которые "пролежали" слишком долго
-                    this.entities = this.entities.filter(entity => {
-                        return !(entity.type === 'corpse' && entity.age > entity.maxAge);
-                    });
-                    
-                    // Движение (кроме растений и трупов)
-                    this.entities.forEach(entity => {
-                        if (entity.type !== 'plant' && entity.type !== 'corpse') {
-                            entity.move(this.worldSize);
-                        }
-                    });
-                    
-                    // Взаимодействия
-                    const newEntities = [];
-                    this.entities.forEach(entity => {
-                        if (entity instanceof Herbivore) {
-                            if (entity.eat(this.entities)) {
-                                const offspring = entity.reproduce();
-                                if (offspring) newEntities.push(offspring);
-                            }
-                        } 
-                        else if (entity instanceof Predator) {
-                            if (entity.hunt(this.entities)) {
-                                const offspring = entity.reproduce();
-                                if (offspring) newEntities.push(offspring);
-                                if (Math.random() < this.corpseSpawnProbability) {
-                                    this.entities.push(new Corpse(entity.x, entity.y));
-                                }
-                            }
-                        } 
-                        else if (entity instanceof Scavenger) {
-                            if (entity.scavenge(this.entities)) {
-                                const offspring = entity.reproduce();
-                                if (offspring) newEntities.push(offspring);
-                            }
+                            return;
                         }
                         
-                        // Общее размножение (кроме растений и трупов)
-                        if (!(entity instanceof Plant || entity instanceof Corpse)) {
-                            const offspring = entity.reproduce();
-                            if (offspring) newEntities.push(offspring);
-                        }
-                    });
-                    
-                    // Добавление новых существ
-                    this.entities.push(...newEntities);
-                    
-                    // Рост растений
-                    if (Math.random() < this.plantGrowthRate / 100) {
-                        this.addRandomPlant();
-                    }
-                    
-                    this.cycle++;
+                        // Взаимодействия
+                        if (entity instanceof Herbivore) entity.eat(this.entities);
+                        else if (entity instanceof Predator) entity.hunt(this.entities);
+                        else if (entity instanceof Scavenger) entity.scavenge(this.entities);
+                        
+                        // Размножение (передаём worldSize)
+                        const offspring = entity.reproduce(this.worldSize);
+                        if (offspring) newEntities.push(offspring);
+                        });
+                        
+                        // 2. Фильтрация умерших (для растений проверяем energy > 0)
+                        this.entities = this.entities.filter(entity => {
+                            if (entity.type === 'plant') return entity.age <= entity.maxAge && entity.energy > 0;
+                            return entity.age <= entity.maxAge && entity.energy > 0;
+                        });
+                        
+                        // 3. Добавляем новых существ
+                        this.entities.push(...newEntities, ...newCorpses);
+                        
+                        // 5. Увеличиваем счётчик циклов
+                        this.cycle++;
                 }
             },
             watch: {
