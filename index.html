@@ -192,23 +192,11 @@
                 super(x, y, 'plant');
                 this.energy = 10;
                 this.initialEnergy = 10;
-                this.maxAge = 100;
-                this.photosynthesisRate = 1;
-                this.maxEnergy = 20;
-                this.reproductionProbability = 0.2; 
+                this.maxAge = 70;
+                this.photosynthesisRate = 0.22;
             }
-
-            update() {
-                this.age++;
-                this.energy = this.energy + this.photosynthesisRate;
-                
-                // Только проверка смерти и фотосинтез
-                if (this.age > this.maxAge || this.energy <= 0) {
-                    this.energy = 0;
-                    return null;
-                }
-                
-                return true; 
+            move() {
+                return; 
             }
         }
 
@@ -226,13 +214,16 @@
                 const nearbyPlants = entities.filter(e => 
                     e.type === 'plant' && 
                     Math.abs(e.x - this.x) <= 1 && 
-                    Math.abs(e.y - this.y) <= 1
+                    Math.abs(e.y - this.y) <= 1 &&
+                    !(e.x === this.x && e.y === this.y)
                 );
                 
                 if (nearbyPlants.length > 0) {
                     const plant = nearbyPlants[0];
+                    this.x = plant.x
+                    this.y = plant.y
                     entities.splice(entities.indexOf(plant), 1);
-                    this.energy += 15;
+                    this.energy += 13;
                     return true;
                 }
                 return false;
@@ -243,10 +234,9 @@
         class Predator extends Entity {
             constructor(x, y) {
                 super(x, y, 'predator');
-                this.energy = 35;
-                this.initialEnergy = 35;
-                this.maxAge = 80;
-                this.huntRadius = 1;
+                this.energy = 40;
+                this.initialEnergy = 40;
+                this.maxAge = 70;
                 this.scavengerHuntChance = 0.2; // 20% шанс атаки на падальщика
             }
 
@@ -254,16 +244,18 @@
                 // 1. Сначала пробуем атаковать травоядных (приоритет)
                 const herbivores = entities.filter(e => 
                     e.type === 'herbivore' && 
-                    Math.abs(e.x - this.x) <= this.huntRadius && 
-                    Math.abs(e.y - this.y) <= this.huntRadius
+                    Math.abs(e.x - this.x) <= 1 && 
+                    Math.abs(e.y - this.y) <= 1
                 );
 
                 if (herbivores.length > 0) {
                     const target = herbivores[0];
+                    this.x = target.x
+                    this.y = target.y
                     entities.splice(entities.indexOf(target), 1);
-                    this.energy += 25;
-                    // Оставляем труп с шансом 50%
-                    if (Math.random() < 0.5) entities.push(new Corpse(target.x, target.y));
+                    this.energy += 22;
+                    // Оставляем труп с шансом 70%
+                    if (Math.random() < 0.7) entities.push(new Corpse(target.x, target.y));
                     return true;
                 }
 
@@ -271,16 +263,18 @@
                 if (Math.random() < this.scavengerHuntChance) {
                     const scavengers = entities.filter(e => 
                         e.type === 'scavenger' && 
-                        Math.abs(e.x - this.x) <= this.huntRadius && 
-                        Math.abs(e.y - this.y) <= this.huntRadius
+                        Math.abs(e.x - this.x) <= 1 && 
+                        Math.abs(e.y - this.y) <= 1
                     );
 
                     if (scavengers.length > 0) {
                         const target = scavengers[0];
+                        this.x = target.x
+                        this.y = target.y
                         entities.splice(entities.indexOf(target), 1);
-                        this.energy += 20; // Меньше энергии, чем за травоядного
-                        // Оставляем труп с шансом 30%
-                        if (Math.random() < 0.3) entities.push(new Corpse(target.x, target.y));
+                        this.energy += 15; // Меньше энергии, чем за травоядного
+                        // Оставляем труп с шансом 70%
+                        if (Math.random() < 0.7) entities.push(new Corpse(target.x, target.y));
                         return true;
                     }
                 }
@@ -293,9 +287,9 @@
         class Scavenger extends Entity {
             constructor(x, y) {
                 super(x, y, 'scavenger');
-                this.energy = 30;
-                this.initialEnergy = 30;
-                this.maxAge = 110;
+                this.energy = 25;
+                this.initialEnergy = 25;
+                this.maxAge = 70;
             }
             
             scavenge(entities) {
@@ -308,8 +302,10 @@
                 
                 if (nearbyCorpses.length > 0) {
                     const corpse = nearbyCorpses[0];
+                    this.x = corpse.x
+                    this.y = corpse.y
                     entities.splice(entities.indexOf(corpse), 1);
-                    this.energy += 20;
+                    this.energy += 25;
                     return true;
                 }
                 return false;
@@ -321,7 +317,7 @@
             constructor(x, y) {
                 super(x, y, 'corpse');
                 this.energy = 0;
-                this.maxAge = 15; // Труп исчезнет строго через 15 циклов
+                this.maxAge = 5; // Труп исчезнет строго через 15 циклов
                 this.age = 0; // Сбрасываем возраст при создании
             }
             
@@ -339,14 +335,13 @@
                 entities: [],
                 simulationInterval: null,
                 cycle: 0,
-                initialPlants: 200,
-                initialHerbivores: 100,
-                initialPredators: 35,
-                initialScavengers: 35,
+                initialPlants: 190,
+                initialHerbivores: 90,
+                initialPredators: 20,
+                initialScavengers: 30,
                 simulationSpeed: 200,
-                plantGrowthRate: 15,
-                reproductionProbability: 0.3,
-                corpseSpawnProbability: 0.5
+                reproductionProbability: 0.27,
+                corpseSpawnProbability: 0.7
             },
             computed: {
                 plantCount() {return this.entities.filter(e =>e.type === 'plant' && e.energy > 0).length;},
@@ -427,7 +422,7 @@
                         
                         // Для растений - фотосинтез
                         if (entity.type === 'plant') {
-                            entity.energy = Math.min(entity.energy + entity.photosynthesisRate, entity.maxEnergy);
+                            entity.energy = entity.energy + entity.photosynthesisRate;
                         } 
                         // Для других - движение
                         else {
@@ -435,13 +430,28 @@
                         }
                         
                         // Проверка смерти
-                        if (entity.age > entity.maxAge || entity.energy <= 0) {
-                            if (entity.type !== 'plant' && Math.random() < this.corpseSpawnProbability) {
-                                newCorpses.push(new Corpse(entity.x, entity.y));
+                        this.entities = this.entities.filter(entity => {
+                            if(entity.type === 'corpse' && entity.age > entity.maxAge){
+                                return true;
                             }
-                            return;
-                        }
-                        
+                            const isDead = (entity.age > entity.maxAge || entity.energy <= 0)&&entity.type !== 'corpse' 
+                            // Для растений
+                            if (entity.type === 'plant') {
+                                if (isDead) {
+                                    return false; // Удаляем мёртвое растение
+                                }
+                                return true; // Оставляем живое растение
+                            }
+                            // Для других сущностей (не растений и не трупов)
+                            if (isDead) {
+                                if (entity.type !== 'corpse' && Math.random() < this.corpseSpawnProbability) {
+                                    newCorpses.push(new Corpse(entity.x, entity.y));
+                                }
+                                return false; 
+                            }
+                            return true; 
+                        });
+                                                
                         // Взаимодействия
                         if (entity instanceof Herbivore) entity.eat(this.entities);
                         else if (entity instanceof Predator) entity.hunt(this.entities);
@@ -450,12 +460,6 @@
                         // Размножение (передаём worldSize)
                         const offspring = entity.reproduce(this.worldSize);
                         if (offspring) newEntities.push(offspring);
-                        });
-                        
-                        // 2. Фильтрация умерших (для растений проверяем energy > 0)
-                        this.entities = this.entities.filter(entity => {
-                            if (entity.type === 'plant') return entity.age <= entity.maxAge && entity.energy > 0;
-                            return entity.age <= entity.maxAge && entity.energy > 0;
                         });
                         
                         // 3. Добавляем новых существ
