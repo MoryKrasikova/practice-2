@@ -3,8 +3,8 @@ import Entity from './Entity.js';
         export default class Scavenger extends Entity {
             constructor(x, y) {
                 super(x, y, 'scavenger');
-                this.energy = 25;
-                this.initialEnergy = 25;
+                this.energy = 27;
+                this.initialEnergy = 27;
                 this.maxAge = 70;
             }
             
