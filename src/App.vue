@@ -56,151 +56,131 @@ import Corpse from "./entity/Corpse.js";
 export default {
     name: 'App',
     data() {
-        return {
-            worldSize: 50,
-            pixelSize: 10,
-            entities: [],
-            simulationInterval: null,
-            cycle: 0,
-            initialPlants: 200,
-            initialHerbivores: 90,
-            initialPredators: 20,
-            initialScavengers: 30,
-            simulationSpeed: 200,
-            reproductionProbability: 0.27,
-            corpseSpawnProbability: 0.7
-        }
+    return {
+      worldSize: 50,
+      pixelSize: 10,
+      entities: [],
+      simulationInterval: null,
+      cycle: 0,
+      initialPlants: 200,
+      initialHerbivores: 90,
+      initialPredators: 20,
+      initialScavengers: 30,
+      simulationSpeed: 200,
+      reproductionProbability: 0.27,
+      corpseSpawnProbability: 0.7
+    }
     },
     computed: {
-        plantCount() { return this.entities.filter(e => e.type === 'plant' && e.energy > 0).length; },
-        herbivoreCount() { return this.entities.filter(e => e.type === 'herbivore').length; },
-        predatorCount() { return this.entities.filter(e => e.type === 'predator').length; },
-        scavengerCount() { return this.entities.filter(e => e.type === 'scavenger').length; },
-        corpseCount() { return this.entities.filter(e => e.type === 'corpse').length; }
+      plantCount() { return this.entities.filter(e => e.type === 'plant' && e.energy > 0).length; },
+      herbivoreCount() { return this.entities.filter(e => e.type === 'herbivore').length; },
+      predatorCount() { return this.entities.filter(e => e.type === 'predator').length; },
+      scavengerCount() { return this.entities.filter(e => e.type === 'scavenger').length; },
+      corpseCount() { return this.entities.filter(e => e.type === 'corpse').length; }
     },
     methods: {
-        initWorld() {
-            this.entities = [];
-            
-            // Создаем растения
-            for (let i = 0; i < this.initialPlants; i++) {
-                const plant = new Plant(
-                    Math.floor(Math.random() * this.worldSize),
-                    Math.floor(Math.random() * this.worldSize)
-                );
-                plant.reproductionProbability = this.reproductionProbability;
-                this.entities.push(plant);
-            }
-            
-            // Создаем травоядных
-            for (let i = 0; i < this.initialHerbivores; i++) {
-                const herbivore = new Herbivore(
-                    Math.floor(Math.random() * this.worldSize),
-                    Math.floor(Math.random() * this.worldSize)
-                );
-                herbivore.reproductionProbability = this.reproductionProbability;
-                this.entities.push(herbivore);
-            }
-            
-            // Создаем хищников
-            for (let i = 0; i < this.initialPredators; i++) {
-                const predator = new Predator(
-                    Math.floor(Math.random() * this.worldSize),
-                    Math.floor(Math.random() * this.worldSize)
-                );
-                predator.reproductionProbability = this.reproductionProbability;
-                this.entities.push(predator);
-            }
-            
-            // Создаем падальщиков
-            for (let i = 0; i < this.initialScavengers; i++) {
-                const scavenger = new Scavenger(
-                    Math.floor(Math.random() * this.worldSize),
-                    Math.floor(Math.random() * this.worldSize)
-                );
-                scavenger.reproductionProbability = this.reproductionProbability;
-                this.entities.push(scavenger);
-            }
-        },
-
-        startSimulation() {
-            if (this.simulationInterval) clearInterval(this.simulationInterval);
-            this.simulationInterval = setInterval(() => this.simulateCycle(), this.simulationSpeed);
-        },
+      initWorld() {
+        this.entities = [];
         
-        stopSimulation() {
-            clearInterval(this.simulationInterval);
-            this.simulationInterval = null;
-        },
-        
-        resetSimulation() {
-            this.stopSimulation();
-            this.cycle = 0;
-            this.initWorld();
-        },
-        
-        simulateCycle() {
-            const newEntities = [];
-            const newCorpses = [];
-            
-            this.entities.forEach(entity => {
-                entity.age++;
-                
-                if (entity.type === 'plant') {
-                    entity.energy += entity.photosynthesisRate;
-                } 
-                else {
-                    // Сначала проверяем взаимодействия (охота/сбор падали)
-                    let acted = false;
-                    if (entity instanceof Predator) {
-                        acted = entity.hunt(this.entities);
-                    }
-                    else if (entity instanceof Scavenger) {
-                        acted = entity.scavenge(this.entities);
-                    }
-                    
-                    // Двигаемся только если не было взаимодействия
-                    if (!acted) {
-                        entity.move(this.worldSize);
-                    }
-                    
-                    // Травоядные действуют как обычно
-                    if (entity instanceof Herbivore) {
-                        entity.eat(this.entities);
-                    }
-                }
-                
-                // 3. Проверка смерти (оставьте как было)
-                this.entities = this.entities.filter(entity => {
-                    if(entity.type === 'corpse' && entity.age > entity.maxAge) return false;
-                    
-                    const isDead = (entity.age > entity.maxAge || entity.energy <= 0) && entity.type !== 'corpse';
-                    if (isDead && entity.type !== 'corpse' && Math.random() < this.corpseSpawnProbability) {
-                        newCorpses.push(new Corpse(entity.x, entity.y));
-                    }
-                    return !isDead;
-                });
-                
-                // 4. Размножение
-                const offspring = entity.reproduce(this.worldSize);
-                if (offspring) newEntities.push(offspring);
-            });
-            
-            this.entities.push(...newEntities, ...newCorpses);
-            this.cycle++;
+        // Создаем растения
+        for (let i = 0; i < this.initialPlants; i++) {
+          const plant = new Plant(
+            Math.floor(Math.random() * this.worldSize),
+            Math.floor(Math.random() * this.worldSize)
+          );
+          plant.reproductionProbability = this.reproductionProbability;
+          this.entities.push(plant);
         }
+        
+        // Создаем травоядных
+        for (let i = 0; i < this.initialHerbivores; i++) {
+          const herbivore = new Herbivore(
+            Math.floor(Math.random() * this.worldSize),
+            Math.floor(Math.random() * this.worldSize)
+          );
+          herbivore.reproductionProbability = this.reproductionProbability;
+          this.entities.push(herbivore);
+        }
+        
+        // Создаем хищников
+        for (let i = 0; i < this.initialPredators; i++) {
+          const predator = new Predator(
+            Math.floor(Math.random() * this.worldSize),
+            Math.floor(Math.random() * this.worldSize)
+          );
+          predator.reproductionProbability = this.reproductionProbability;
+          this.entities.push(predator);
+        }
+        
+        // Создаем падальщиков
+        for (let i = 0; i < this.initialScavengers; i++) {
+          const scavenger = new Scavenger(
+            Math.floor(Math.random() * this.worldSize),
+            Math.floor(Math.random() * this.worldSize)
+          );
+          scavenger.reproductionProbability = this.reproductionProbability;
+          this.entities.push(scavenger);
+        }
+      },
+      startSimulation() {
+        if (this.simulationInterval) clearInterval(this.simulationInterval);
+        this.simulationInterval = setInterval(() => this.simulateCycle(), this.simulationSpeed);
+      },
+      stopSimulation() {
+        clearInterval(this.simulationInterval);
+        this.simulationInterval = null;
+      },
+      resetSimulation() {
+        this.stopSimulation();
+        this.cycle = 0;
+        this.initWorld();
+      },
+      simulateCycle() {
+        const newEntities = [];
+        const newCorpses = [];
+        
+        this.entities.forEach(entity => {
+          entity.age++;
+          
+          if (entity.type === 'plant') {
+            entity.energy += entity.photosynthesisRate;
+          } else {
+            entity.move(this.worldSize);
+          }
+          
+          this.entities = this.entities.filter(entity => {
+            if(entity.type === 'corpse' && entity.age > entity.maxAge) return false;
+            
+            const isDead = (entity.age > entity.maxAge || entity.energy <= 0) && entity.type !== 'corpse';
+            if (isDead && entity.type !== 'corpse' && Math.random() < this.corpseSpawnProbability) {
+              newCorpses.push(new Corpse(entity.x, entity.y));
+            }
+            return !isDead;
+          });
+          
+          if (entity instanceof Herbivore) entity.eat(this.entities);
+          else if (entity instanceof Predator) entity.hunt(this.entities);
+          else if (entity instanceof Scavenger) entity.scavenge(this.entities);
+          
+          const offspring = entity.reproduce(this.worldSize);
+          if (offspring) newEntities.push(offspring);
+        });
+        
+        this.entities.push(...newEntities, ...newCorpses);
+        this.cycle++;
+      }
     },
     watch: {
-        simulationSpeed(newSpeed) {
-            if (this.simulationInterval) {
-                clearInterval(this.simulationInterval);
-                this.simulationInterval = setInterval(() => this.simulateCycle(), newSpeed);
-            }
+      simulationSpeed(newSpeed) {
+        if (this.simulationInterval) {
+          clearInterval(this.simulationInterval);
+          this.simulationInterval = setInterval(() => this.simulateCycle(), newSpeed);
         }
+      }
     },
     mounted() {
-        this.initWorld();
-    }
+      this.initWorld();
+  }
 }
 </script>
 
