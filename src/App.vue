@@ -19,7 +19,7 @@
       </div>
     </div>
     
-    <div class="simulation-container">
+  <div class="simulation-container">
   <SimulationDisplay
     :entities="entities"
     :world-size="worldSize"
@@ -90,9 +90,10 @@
         v-model.number="initialScavengers"
       >
       <span class="value">{{ initialScavengers }}</span>
+      <button class="apply-button" @click="applySettings">Применить</button>
     </div>
   </div>
-</div>
+  </div>
 </template>
 
 <script>
@@ -176,9 +177,20 @@ export default {
       }
     },
     startSimulation() {
-      if (this.simulationInterval) clearInterval(this.simulationInterval);
-      this.initWorld(); // Переинициализируем мир с новыми параметрами
-      this.simulationInterval = setInterval(() => this.simulateCycle(), this.simulationSpeed);
+      if (!this.simulationInterval) {
+        this.simulationInterval = setInterval(() => this.simulateCycle(), this.simulationSpeed);
+      }
+    },
+    
+    // Добавляем новый метод applySettings
+    applySettings() {
+      // Если симуляция запущена - останавливаем
+      if (this.simulationInterval) {
+        this.stopSimulation();
+      }
+      
+      // Переинициализируем мир с новыми параметрами
+      this.initWorld();
     },
     stopSimulation() {
       clearInterval(this.simulationInterval);
@@ -256,7 +268,21 @@ export default {
   padding: 20px;
   background-color: #f5f5f5;
 }
+.apply-button {
+  padding: 10px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+  width: 100%;
+}
 
+.apply-button:hover {
+  background-color: #0b7dda;
+}
 h1 {
   text-align: center;
   color: #333;
