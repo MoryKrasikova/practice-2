@@ -10,33 +10,89 @@
       <div>Останки: {{ corpseCount }}</div>
       <div>Цикл: {{ cycle }}</div>
     </div>
-    
-    <div class="controls">
-      <button @click="startSimulation">Старт</button>
-      <button @click="stopSimulation">Стоп</button>
-      <button @click="resetSimulation">Сброс</button>
+      
+      <!-- Ваши существующие кнопки -->
+      <div class="buttons">
+        <button @click="startSimulation">Старт</button>
+        <button @click="stopSimulation">Стоп</button>
+        <button @click="resetSimulation">Сброс</button>
+      </div>
     </div>
     
     <div class="simulation-container">
-      <SimulationDisplay
-        :entities="entities"
-        :world-size="worldSize"
-        :pixel-size="pixelSize"
-      />
-      
-      <div class="speed-control">
-        <label for="speed">Скорость:</label>
-        <input 
-          type="range" 
-          id="speed" 
-          min="50" 
-          max="1000" 
-          v-model="simulationSpeed"
-        >
-        <span>{{ simulationSpeed }} мс</span>
-      </div>
+  <SimulationDisplay
+    :entities="entities"
+    :world-size="worldSize"
+    :pixel-size="pixelSize"
+  />
+  
+  <div class="speed-control">
+    <!-- Ползунок скорости -->
+    <div class="control-slider">
+      <label for="speed">Скорость</label>
+      <input 
+        type="range" 
+        id="speed" 
+        min="50" 
+        max="1000" 
+        v-model="simulationSpeed"
+      >
+      <span class="value">{{ simulationSpeed }} мс</span>
+    </div>
+    
+    <!-- Ползунок растений -->
+    <div class="control-slider">
+      <label for="plants">Растения</label>
+      <input 
+        type="range" 
+        id="plants" 
+        min="50" 
+        max="250" 
+        v-model.number="initialPlants"
+      >
+      <span class="value">{{ initialPlants }}</span>
+    </div>
+    
+    <!-- Ползунок травоядных -->
+    <div class="control-slider">
+      <label for="herbivores">Травоядные</label>
+      <input 
+        type="range" 
+        id="herbivores" 
+        min="10" 
+        max="100" 
+        v-model.number="initialHerbivores"
+      >
+      <span class="value">{{ initialHerbivores }}</span>
+    </div>
+    
+    <!-- Ползунок хищников -->
+    <div class="control-slider">
+      <label for="predators">Хищники</label>
+      <input 
+        type="range" 
+        id="predators" 
+        min="10" 
+        max="100" 
+        v-model.number="initialPredators"
+      >
+      <span class="value">{{ initialPredators }}</span>
+    </div>
+    
+    <!-- Ползунок падальщиков -->
+    <div class="control-slider">
+      <label for="scavengers">Падальщики</label>
+      <input 
+        type="range" 
+        id="scavengers" 
+        min="10" 
+        max="100" 
+        v-model.number="initialScavengers"
+      >
+      <span class="value">{{ initialScavengers }}</span>
     </div>
   </div>
+</div>
 </template>
 
 <script>
@@ -121,6 +177,7 @@ export default {
     },
     startSimulation() {
       if (this.simulationInterval) clearInterval(this.simulationInterval);
+      this.initWorld(); // Переинициализируем мир с новыми параметрами
       this.simulationInterval = setInterval(() => this.simulateCycle(), this.simulationSpeed);
     },
     stopSimulation() {
@@ -155,8 +212,10 @@ export default {
           const isDead = isAnimal && (entity.age > entity.maxAge || entity.energy <= 0);
           
           if (isDead && Math.random() < this.corpseSpawnProbability) {
-            newCorpses.push(new Corpse(entity.x, entity.y));
-          }
+          const corpse = new Corpse(entity.x, entity.y);
+          corpse.originalType = entity.type; // Сохраняем тип оригинала
+          newCorpses.push(corpse);
+        }
           
           return !isDead;
         });
@@ -192,7 +251,7 @@ export default {
 <style>
 .artificial-life {
   font-family: Arial, sans-serif;
-  max-width: 1000px; /* Увеличил максимальную ширину */
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
   background-color: #f5f5f5;
@@ -206,9 +265,15 @@ h1 {
 
 .controls {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   gap: 15px;
   margin: 20px 0;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
 }
 
 button {
@@ -238,40 +303,78 @@ button:hover {
   gap: 10px 20px;
 }
 
+.settings-group {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.setting:last-child {
+  margin-bottom: 0;
+}
+
+.setting label {
+  min-width: 120px;
+  font-size: 14px;
+}
+
+.setting input[type="range"] {
+  flex-grow: 1;
+}
+
 .simulation-container {
   display: flex;
-  justify-content: flex-start; /* Изменил на flex-start */
+  justify-content: center;
   align-items: flex-start;
-  gap: 15px;
-  padding-left: 235px; /* Смещаем всю группу вправо */
+  gap: 20px;
 }
 
+/* Обновленные стили для блока управления */
 .speed-control {
+  position: absolute; /* Вырываем блок из потока и позиционируем отдельно */
+  left: 1050px; /* Сдвигаем вправо от левого края */
+  top: 250px; /* Регулируем вертикальное положение */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: 250px; /* Увеличил ширину */
-  padding-top: 50px;
-  flex-shrink: 0;
+  gap: 15px;
+  width: 250px;
+  background: white; /* Чтобы не сливалось с фоном */
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10; /* Чтобы был поверх других элементов */
+}
+/* Стили для всех ползунков (и скорости, и настроек) */
+.control-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.speed-control input[type="range"] {
-  width: 250px; /* Увеличил длину ползунка */
-  height: 25px; /* Увеличил высоту */
-  margin: 10px 0;
-}
-
-.speed-control label {
+.control-slider label {
   font-weight: bold;
-  font-size: 18px; /* Увеличил шрифт */
+  font-size: 14px;
 }
 
-.speed-control span {
+.control-slider input[type="range"] {
+  width: 250px;
+  height: 14px;
+  margin-left: 0;
+}
+
+.control-slider .value {
   background: white;
-  padding: 8px 15px; /* Увеличил отступы */
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  font-size: 16px; /* Увеличил шрифт */
+  font-size: 14px;
+  text-align: center;
 }
 </style>

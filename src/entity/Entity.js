@@ -18,7 +18,6 @@ export default class Entity {
                 this.y = (this.y + dir.dy + worldSize) % worldSize;
                 this.energy -= 1;
             }
-            G
             reproduce(worldSize) {
                 if (this.energy > this.initialEnergy * 1.5 && 
                     Math.random() < this.reproductionProbability) {
