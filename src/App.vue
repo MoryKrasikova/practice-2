@@ -122,7 +122,7 @@ export default {
       initialScavengers: 30,
       simulationSpeed: 200,
       reproductionProbability: 0.27,
-      corpseSpawnProbability: 0.75
+      corpseSpawnProbability: 0.8
     }
   },
   computed: {
@@ -366,7 +366,7 @@ button:hover {
 .speed-control {
   position: absolute; /* Вырываем блок из потока и позиционируем отдельно */
   left: 1050px; /* Сдвигаем вправо от левого края */
-  top: 250px; /* Регулируем вертикальное положение */
+  top: 220px; /* Регулируем вертикальное положение */
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -375,9 +375,9 @@ button:hover {
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 10; /* Чтобы был поверх других элементов */
+  z-index: 10; 
 }
-/* Стили для всех ползунков (и скорости, и настроек) */
+/* Стили для всех ползунков*/
 .control-slider {
   display: flex;
   flex-direction: column;
