@@ -3,8 +3,8 @@ import Entity from './Entity.js';
         export default class Herbivore extends Entity {
             constructor(x, y) {
                 super(x, y, 'herbivore');
-                this.energy = 25;
-                this.initialEnergy = 25;
+                this.energy = 30;
+                this.initialEnergy = 30;
                 this.maxAge = 70;
             }
             

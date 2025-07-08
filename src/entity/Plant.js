@@ -3,10 +3,10 @@ import Entity from './Entity.js';
         export default class Plant extends Entity {
             constructor(x, y) {
                 super(x, y, 'plant');
-                this.energy = 10;
-                this.initialEnergy = 10;
+                this.energy = 15;
+                this.initialEnergy = 15;
                 this.maxAge = 70;
-                this.photosynthesisRate = 0.22;
+                this.photosynthesisRate = 0.25;
             }
             move() {
                 return; 

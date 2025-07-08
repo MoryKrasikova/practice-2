@@ -4,7 +4,7 @@ import Entity from './Entity.js';
             constructor(x, y) {
                 super(x, y, 'corpse');
                 this.energy = 0;
-                this.maxAge = 5; // Труп исчезнет строго через 15 циклов
+                this.maxAge = 5; // Труп исчезнет строго через 5 циклов
                 this.age = 0; // Сбрасываем возраст при создании
             }
             

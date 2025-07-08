@@ -3,8 +3,8 @@ import Entity from './Entity.js';
         export default class Predator extends Entity {
             constructor(x, y) {
                 super(x, y, 'predator');
-                this.energy = 40;
-                this.initialEnergy = 40;
+                this.energy = 35;
+                this.initialEnergy = 35;
                 this.maxAge = 70;
                 this.scavengerHuntChance = 0.2; // 20% шанс атаки на падальщика
             }
