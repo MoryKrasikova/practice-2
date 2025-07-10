@@ -30,41 +30,66 @@ export default {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      this.entities.forEach(entity => {
+      // Сортируем сущности по приоритету
+      const sortedEntities = [...this.entities].sort((a, b) => {
+        return this.getEntityPriority(a.type) - this.getEntityPriority(b.type);
+      });
+      
+      sortedEntities.forEach(entity => {
         this.drawEntity(ctx, entity);
       });
+    },
+    getEntityPriority(type) {
+      const priorities = {
+        predator: 4,     // Самый высокий приоритет
+        scavenger: 3,
+        herbivore: 2,
+        plant: 1,        // Самый низкий приоритет
+        corpse: 0
+      };
+      return priorities[type] || 10;
     },
     drawEntity(ctx, entity) {
       const x = entity.x * this.pixelSize;
       const y = entity.y * this.pixelSize;
       const size = this.pixelSize;
       
+      ctx.save();
+      
       if (entity.type === 'corpse') {
-        ctx.fillStyle = '#7f8c8d'; // Серый цвет для трупов
-        // Рисуем форму оригинала, если она сохранена
-        if (entity.originalType) {
-          this.drawShape(ctx, x, y, size, entity.originalType);
-        } else {
-          // Стандартный квадрат, если originalType не указан
-          ctx.fillRect(x, y, size, size);
-        }
+        ctx.fillStyle = '#7f8c8d';
+        const shapeType = entity.originalType || 'herbivore';
+        this.drawShape(ctx, x, y, size, shapeType, false);
+        ctx.restore();
         return;
       }
       
-      // Рисуем живые существа
       ctx.fillStyle = this.getEntityColor(entity.type);
-      this.drawShape(ctx, x, y, size, entity.type);
+      this.drawShape(ctx, x, y, size, entity.type, entity.isMigrating || false);
+      ctx.restore();
     },
-    drawShape(ctx, x, y, size, type) {
+    drawShape(ctx, x, y, size, type, needStroke) {
+      // Рисуем основную фигуру
       switch(type) {
         case 'plant':
+        case 'scavenger':
           ctx.beginPath();
           ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
           ctx.fill();
+          if (needStroke) {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
           break;
           
         case 'herbivore':
           ctx.fillRect(x, y, size, size);
+          if (needStroke) {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, size, size);
+          }
           break;
           
         case 'predator':
@@ -74,16 +99,20 @@ export default {
           ctx.lineTo(x, y + size);
           ctx.closePath();
           ctx.fill();
-          break;
-          
-        case 'scavenger':
-          ctx.beginPath();
-          ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
-          ctx.fill();
+          if (needStroke) {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
           break;
           
         default:
           ctx.fillRect(x, y, size, size);
+          if (needStroke) {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, size, size);
+          }
       }
     },
     getEntityColor(type) {

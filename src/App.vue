@@ -11,7 +11,6 @@
       <div>Цикл: {{ cycle }}</div>
     </div>
       
-      <!-- Ваши существующие кнопки -->
       <div class="buttons">
         <button @click="startSimulation">Старт</button>
         <button @click="stopSimulation">Стоп</button>
@@ -35,7 +34,7 @@
         id="speed" 
         min="50" 
         max="1000" 
-        v-model="simulationSpeed"
+        v-model.number="simulationSpeed"
       >
       <span class="value">{{ simulationSpeed }} мс</span>
     </div>
@@ -122,7 +121,11 @@ export default {
       initialScavengers: 30,
       simulationSpeed: 200,
       reproductionProbability: 0.27,
-      corpseSpawnProbability: 0.8
+      corpseSpawnProbability: 0.8,
+      plantSpawnProbability: 0.4, // 30% chance to spawn plants each cycle
+      maxNewPlants: 5, // Максимальное количество новых растений за цикл
+      maxPlants: 500 // Максимальное общее количество растений
+      
     }
   },
   computed: {
@@ -131,6 +134,7 @@ export default {
     predatorCount() { return this.entities.filter(e => e.type === 'predator').length; },
     scavengerCount() { return this.entities.filter(e => e.type === 'scavenger').length; },
     corpseCount() { return this.entities.filter(e => e.type === 'corpse').length; }
+
   },
   methods: {
     initWorld() {
@@ -204,14 +208,24 @@ export default {
     simulateCycle() {
       const newEntities = [];
       const newCorpses = [];
-      
+      const currentPlantCount = this.entities.filter(e => e.type === 'plant' && e.energy > 0).length;
       this.entities.forEach(entity => {
         entity.age++;
         
         if (entity.type === 'plant') {
           entity.energy += entity.photosynthesisRate;
         } else {
-          entity.move(this.worldSize);
+          // Для травоядных передаем entities для интеллектуального поведения
+          if (entity.type === 'herbivore') {
+            entity.move(this.worldSize, this.entities);
+          } 
+          else if(entity.type === 'scavenger'){
+            // Для других существ обычное движение
+            entity.move(this.worldSize, this.entities); 
+          }
+          else if(entity.type === 'predator'){
+            entity.move(this.worldSize, this.entities); 
+          }
         }
         
         // Фильтрация умерших существ (кроме растений и трупов)
@@ -219,6 +233,9 @@ export default {
           // Удаляем старые трупы
           if(entity.type === 'corpse' && entity.age > entity.maxAge) return false;
           
+          if(entity.type === 'plant' && (entity.age > entity.maxAge || entity.energy <= 0)) {
+              return false; // Удаляем растение
+          }
           // Проверяем смерть только для животных (не plants и не corpses)
           const isAnimal = ['herbivore', 'predator', 'scavenger'].includes(entity.type);
           const isDead = isAnimal && (entity.age > entity.maxAge || entity.energy <= 0);
@@ -231,7 +248,6 @@ export default {
           
           return !isDead;
         });
-        
         // Логика питания
         if (entity instanceof Herbivore) entity.eat(this.entities);
         else if (entity instanceof Predator) entity.hunt(this.entities);
@@ -242,6 +258,58 @@ export default {
         if (offspring) newEntities.push(offspring);
       });
       
+      if (this.cycle % 10 === 0 && Math.random() < 0.7) {
+        const count = 1 + Math.floor(Math.random() * 10);
+        const weightedTypes = ["herbivore", "herbivore", "predator", "scavenger"];
+        
+        for (let i = 0; i < count; i++) {
+          const type = weightedTypes[Math.floor(Math.random() * weightedTypes.length)];
+          let animal;
+          
+          // Создаем животное соответствующего типа
+          switch(type) {
+            case 'herbivore':
+              animal = new Herbivore(
+                Math.random() * this.worldSize,
+                Math.random() * this.worldSize
+              );
+              break;
+            case 'predator':
+              animal = new Predator(
+                Math.random() * this.worldSize,
+                Math.random() * this.worldSize
+              );
+              break;
+            case 'scavenger':
+              animal = new Scavenger(
+                Math.random() * this.worldSize,
+                Math.random() * this.worldSize
+              );
+              break;
+            default:
+              animal = new Herbivore(
+                Math.random() * this.worldSize,
+                Math.random() * this.worldSize
+              );
+          }
+          
+          animal.isMigrating = true;
+          newEntities.push(animal);
+        }
+      }
+      //добавление случайных растений
+      if (currentPlantCount < 500 && Math.random() < this.plantSpawnProbability) {
+        const plantCount = 1 + Math.floor(Math.random() * this.maxNewPlants);
+        
+        for (let i = 0; i < plantCount; i++) {
+          const plant = new Plant(
+            Math.random() * this.worldSize, // Случайная X координата
+            Math.random() * this.worldSize, // Случайная Y координата
+            this.initialPlantEnergy // Начальная энергия
+          );
+          newEntities.push(plant);
+        }
+      }
       this.entities.push(...newEntities, ...newCorpses);
       this.cycle++;
     }
