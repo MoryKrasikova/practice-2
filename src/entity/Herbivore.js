@@ -85,8 +85,8 @@ export default class Herbivore extends Entity {
     
     // Движение к цели
     moveTowardTarget(worldSize) {
-        const dx = this.targetCorpse.x - this.x;
-        const dy = this.targetCorpse.y - this.y;
+        const dx = this.targetPlant.x - this.x;
+        const dy = this.targetPlant.y - this.y;
         
         if (Math.abs(dx) > Math.abs(dy)) {
             this.x = (this.x + Math.sign(dx) + worldSize) % worldSize;

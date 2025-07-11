@@ -11,7 +11,7 @@ export default class Scavenger extends Entity {
         this.fearLevel = 0.6; // Уровень страха перед хищниками 
     }
     
-    // Поиск ближайшего трупа
+    // Поиск ближайших останков
     findNearestCorpse(entities) {
         const corpses = entities.filter(e => e.type === 'corpse');
         let nearestCorpse = null;
