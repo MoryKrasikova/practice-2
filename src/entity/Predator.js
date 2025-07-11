@@ -7,7 +7,7 @@ export default class Predator extends Entity {
         this.initialEnergy = 35;
         this.maxAge = 70;
         this.visionRange = 12;
-        this.scavengerHuntChance = 0.06;
+        this.scavengerHuntChance = 0.1;
         this.target = null;
         this.stamina = 100;
         this.sprintCost = 30;
@@ -72,7 +72,7 @@ export default class Predator extends Entity {
             return;
         }
 
-        // 3. Проверка более близких целей (важная оптимизация!)
+        // 3. Проверка более близких целей 
         if (this.target && this.targetCheckCooldown <= 0) {
             const newTarget = this.findNearestTarget(entities);
             if (newTarget) {
@@ -113,7 +113,7 @@ export default class Predator extends Entity {
         this.stamina = Math.min(100, this.stamina + 5);
         this.energy -= 1;
     }
-    // Единственный метод findNearestTarget
+
     findNearestTarget(entities) {
         let nearestTarget = null;
         let minDistance = Infinity;
@@ -137,11 +137,11 @@ export default class Predator extends Entity {
         const dy = this.target.y - this.y;
 
         if (Math.abs(dx) > Math.abs(dy)) {
-            this.x = this.clamp(this.x + Math.sign(dx)*2, worldSize);
-            this.y = this.clamp(this.y + Math.sign(dy)*1, worldSize);
+            this.x = (this.x + Math.sign(dx)*2 + worldSize) % worldSize;
+            this.y = (this.y + Math.sign(dy)*1 + worldSize) % worldSize;
         } else {
-            this.x = this.clamp(this.x + Math.sign(dx)*1, worldSize);
-            this.y = this.clamp(this.y + Math.sign(dy)*2, worldSize);
+            this.x = (this.x + Math.sign(dx)*1 + worldSize) % worldSize;
+            this.y = (this.y + Math.sign(dy)*2 + worldSize) % worldSize;
         }
 
         this.stamina -= this.sprintCost;
@@ -153,14 +153,10 @@ export default class Predator extends Entity {
         const dy = this.target.y - this.y;
 
         if (Math.abs(dx) > Math.abs(dy)) {
-            this.x = this.clamp(this.x + Math.sign(dx), worldSize);
+            this.x = (this.x + Math.sign(dx) + worldSize) % worldSize;
         } else {
-            this.y = this.clamp(this.y + Math.sign(dy), worldSize);
+            this.y = (this.y + Math.sign(dy) + worldSize) % worldSize;
         }
-    }
-
-    clamp(value, worldSize) {
-        return Math.max(0, Math.min(worldSize-1, value));
     }
 
     calculateDistance(entity) {

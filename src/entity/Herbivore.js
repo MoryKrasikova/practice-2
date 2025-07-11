@@ -84,15 +84,14 @@ export default class Herbivore extends Entity {
     }
     
     // Движение к цели
-    moveTowardTarget() {
-        const dx = this.targetPlant.x - this.x;
-        const dy = this.targetPlant.y - this.y;
+    moveTowardTarget(worldSize) {
+        const dx = this.targetCorpse.x - this.x;
+        const dy = this.targetCorpse.y - this.y;
         
-        // Двигаемся на 1 клетку в направлении цели
         if (Math.abs(dx) > Math.abs(dy)) {
-            this.x += dx > 0 ? 1 : -1;
+            this.x = (this.x + Math.sign(dx) + worldSize) % worldSize;
         } else {
-            this.y += dy > 0 ? 1 : -1;
+            this.y = (this.y + Math.sign(dy) + worldSize) % worldSize;
         }
     }
     
@@ -120,7 +119,7 @@ export default class Herbivore extends Entity {
     }
     
     eat(entities) {
-        // Ищем растения в радиусе 2 клеток
+        // Ищем растения в радиусе 
         const nearbyPlants = entities.filter(e => 
             e.type === 'plant' && 
             Math.abs(e.x - this.x) <= 1 && 

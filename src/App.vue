@@ -120,9 +120,9 @@ export default {
       initialPredators: 17,
       initialScavengers: 30,
       simulationSpeed: 200,
-      reproductionProbability: 0.27,
+      reproductionProbability: 0.3,
       corpseSpawnProbability: 0.8,
-      plantSpawnProbability: 0.4, // 30% chance to spawn plants each cycle
+      plantSpawnProbability: 0.4, // 40% chance to spawn plants each cycle
       maxNewPlants: 5, // Максимальное количество новых растений за цикл
       maxPlants: 500 // Максимальное общее количество растений
       
@@ -242,7 +242,7 @@ export default {
           
           if (isDead && Math.random() < this.corpseSpawnProbability) {
           const corpse = new Corpse(entity.x, entity.y);
-          corpse.originalType = entity.type; // Сохраняем тип оригинала
+          corpse.originalType = entity.type; 
           newCorpses.push(corpse);
         }
           

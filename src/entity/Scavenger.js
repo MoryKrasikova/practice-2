@@ -8,7 +8,7 @@ export default class Scavenger extends Entity {
         this.maxAge = 70;
         this.visionRange = 10; // Радиус поиска трупов
         this.targetCorpse = null; // Текущая цель
-        this.fearLevel = 0.6; // Уровень страха перед хищниками (0-1)
+        this.fearLevel = 0.6; // Уровень страха перед хищниками 
     }
     
     // Поиск ближайшего трупа
